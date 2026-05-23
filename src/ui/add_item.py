@@ -5,7 +5,18 @@ from core.db import add_food_item
 def open_add_item(parent_root, on_success_callback):
     add_win = tk.Toplevel(parent_root)
     add_win.title("➕ Add New Food Item")
-    add_win.geometry("400x320")
+
+    popup_width = 400
+    popup_height = 320
+    
+    screen_width = add_win.winfo_screenwidth()
+    screen_height = add_win.winfo_screenheight()
+    
+    center_x = int((screen_width - popup_width) / 2)
+    center_y = int((screen_height - popup_height) / 2)
+    
+    add_win.geometry(f"{popup_width}x{popup_height}+{center_x}+{center_y}")
+
     add_win.configure(bg="#f8fafc")
     
     add_win.transient(parent_root)
