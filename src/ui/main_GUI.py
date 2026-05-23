@@ -9,7 +9,18 @@ from core.db import get_all_food, delete_food
 def start_app_ui():
     root = tk.Tk()
     root.title("Buffet Value Maximizer")
-    root.geometry("950x550")  
+
+    window_width = 950
+    window_height = 550
+    
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    
+    # Calculate perfect center coordinates
+    center_x = int((screen_width - window_width) / 2)
+    center_y = int((screen_height - window_height) / 2)
+    root.geometry(f"{window_width}x{window_height}+{center_x}+{center_y}")
+
     root.configure(bg="#000000")  
 
     style = ttk.Style()
