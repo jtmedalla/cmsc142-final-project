@@ -6,7 +6,7 @@ def open_add_item(parent_root, on_success_callback):
     add_win = tk.Toplevel(parent_root)
     add_win.title("➕ Add New Food Item")
 
-    popup_width = 400
+    popup_width = 330
     popup_height = 320
     
     screen_width = add_win.winfo_screenwidth()
