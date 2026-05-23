@@ -1,4 +1,4 @@
-food_items_db = []
+food_items_db = {}
 
 def add_food_item(name, serving_size, value_serving, tolerance):
     food_items_db[name] = {
@@ -7,10 +7,10 @@ def add_food_item(name, serving_size, value_serving, tolerance):
         "tolerance": int(tolerance)
     }
 
-def delete_food_item_by_name(name):
+def delete_food(name):
     food_items_db.pop(name, None)
 
-def get_all_food_items():
+def get_all_food():
     """
     Returns the current list of all food items stored in the database.
     """

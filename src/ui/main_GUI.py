@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 
+from ui.add_item import open_add_item
+from core.db import get_all_food, delete_food
+
 # initializations
 
 def start_app_ui():
@@ -37,7 +40,6 @@ def start_app_ui():
     style.configure('Calculate.TButton', background=GREEN, foreground="white", font=('Poppins', 12, 'bold'), borderwidth=0)
     style.map('Calculate.TButton', background=[('active', '#15803d')])
 
-    # Treeview Styling
     style.configure("Treeview", font=('Poppins', 10), rowheight=25, background="white", fieldbackground="white")
     style.configure("Treeview.Heading", font=('Poppins', 10, 'bold'), background="#e2e8f0", foreground=BLUE, relief="flat")
     style.map("Treeview.Heading", background=[('active', '#cbd5e1')])
@@ -94,11 +96,39 @@ def start_app_ui():
     food_menu.pack(side="left", fill="both", expand=True)
     food_scroll.pack(side="right", fill="y")
 
+
+    def refresh_table_display():
+        """Clears the visual table and populates rows from the dictionary database."""
+        for row in food_menu.get_children():
+            food_menu.delete(row)
+        
+        # Pull items out of dictionary fast
+        for name, details in get_all_food().items():
+            food_menu.insert("", "end", values=(
+                name, 
+                f"{details['serving_size']:g}", 
+                f"{details['value_serving']:g}", 
+                details["tolerance"]
+            ))
+
+    def delete_selected_item():
+        """Drops highlighted row from the O(1) database structure and refreshes."""
+        selected_items = food_menu.selection()
+        for item in selected_items:
+            item_values = food_menu.item(item, 'values')
+            if item_values:
+                food_name = item_values[0]
+                delete_food(food_name)
+        refresh_table_display()
+
+
     # Table Action Buttons
     action_btn_frame = ttk.Frame(left_frame)
     action_btn_frame.pack(fill="x", pady=(10, 0))
 
-    add_item = ttk.Button(action_btn_frame, text="➕ Add Food Item", style="Add.TButton")
+    add_item = ttk.Button(action_btn_frame, text="➕ Add Food Item", style="Add.TButton",
+                          command=lambda: open_add_item(root, refresh_table_display)
+                          )
     add_item.pack(side="left", padx=(0, 5), ipady=5, expand=True, fill="x")
 
     del_item = ttk.Button(action_btn_frame, text="🗑️ Delete Selected", style="Delete.TButton")
