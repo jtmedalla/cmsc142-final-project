@@ -6,17 +6,6 @@ def open_add_item(parent_root, on_success_callback):
     add_win = tk.Toplevel(parent_root)
     add_win.title("➕ Add New Food Item")
 
-    popup_width = 330
-    popup_height = 320
-    
-    screen_width = add_win.winfo_screenwidth()
-    screen_height = add_win.winfo_screenheight()
-    
-    center_x = int((screen_width - popup_width) / 2)
-    center_y = int((screen_height - popup_height) / 2)
-    
-    add_win.geometry(f"{popup_width}x{popup_height}+{center_x}+{center_y}")
-
     add_win.configure(bg="#f8fafc")
     
     add_win.transient(parent_root)
@@ -59,3 +48,16 @@ def open_add_item(parent_root, on_success_callback):
 
     save_btn = ttk.Button(form_frame, text="Save Item", style="Calculate.TButton", command=save_item)
     save_btn.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(10, 0), ipady=5)
+
+    add_win.update()
+
+    popup_width = add_win.winfo_width()
+    popup_height = add_win.winfo_height()
+    
+    screen_width = add_win.winfo_screenwidth()
+    screen_height = add_win.winfo_screenheight()
+    
+    center_x = int((screen_width - popup_width) / 2)
+    center_y = int((screen_height - popup_height) / 2)
+    
+    add_win.geometry(f"{popup_width}x{popup_height}+{center_x}+{center_y}")
