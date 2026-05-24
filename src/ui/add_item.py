@@ -78,7 +78,7 @@ def open_add_item(parent_root, on_success_callback):
             return
         
         add_food_item(name, serving_size, value_serving, tolerance)
-        on_success_callback()
+        on_success_callback(f"➕ Added '{name}' successfully!")
         add_win.destroy()
 
         

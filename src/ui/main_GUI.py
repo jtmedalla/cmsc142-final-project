@@ -113,7 +113,7 @@ def start_app_ui():
     food_scroll.pack(side="right", fill="y")
 
 
-    def refresh_table_display():
+    def refresh_table_display(toast_msg=None, is_error=False):
         """Clears the visual table and populates rows from the dictionary database."""
         for row in food_menu.get_children():
             food_menu.delete(row)
@@ -129,6 +129,32 @@ def start_app_ui():
         
         food_menu.checklist_mode = False
         del_item.config(text="🗑️ Delete Selected")
+
+        if toast_msg:
+            color = RED if is_error else GREEN
+            show_toast(root, toast_msg, bg_color=color)
+
+    def show_toast(root, message, bg_color="#0f172a"):
+        toast = tk.Toplevel(root)
+        toast.wm_overrideredirect(True)  
+        toast.configure(bg=bg_color)
+
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        
+        toast_width = 320
+        toast_height = 42
+        
+        x = (screen_width - toast_width) // 2
+        y = (screen_height - toast_height) // 2
+        
+        toast.geometry(f"{toast_width}x{toast_height}+{x}+{y}")
+        toast.attributes("-topmost", True)
+        
+        lbl = tk.Label(toast, text=message, fg="white", bg=bg_color, font=('Poppins', 10, 'bold'))
+        lbl.pack(expand=True, fill="both", padx=10, pady=5)
+        
+        toast.after(2500, toast.destroy)
 
     def delete_selected_item():
         """2 states will happened here if the user tap "Delete Button
