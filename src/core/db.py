@@ -25,3 +25,15 @@ def update_food_item(old_name, new_name, serving_size, value_serving, tolerance)
         "value_serving": float(value_serving),
         "tolerance": float(tolerance)
     }
+
+
+
+
+max_consumable_weight = 0.0
+
+def set_max_weight(weight):
+    global max_consumable_weight
+    max_consumable_weight = float(weight)
+
+def get_max_weight():
+    return max_consumable_weight
