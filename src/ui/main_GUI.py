@@ -3,6 +3,7 @@ from tkinter import ttk
 
 from ui.add_item import open_add_item
 from core.db import get_all_food, delete_food
+from ui.edit_item import open_edit_item
 
 # initializations
 
@@ -30,6 +31,7 @@ def start_app_ui():
     BLUE = "#0f172a"  
     GREEN = "#16a34a"  
     RED = "#dc2626"     
+    LELLOW = "#BABD37"
 
     style.configure('TFrame', background=BG_COLOR)
 
@@ -43,10 +45,13 @@ def start_app_ui():
 
     # Buttons
     style.configure('Add.TButton', background=BLUE, foreground="white", font=('Poppins', 10, 'bold'), borderwidth=0)
-    style.map('Add.TButton', background=[('active', '#1e293b')])
+    style.map('Add.TButton', background=[('active', "#0e1e46")])
 
-    style.configure('Delete.TButton', background="#ef4444", foreground="white", font=('Poppins', 10, 'bold'), borderwidth=0)
-    style.map('Delete.TButton', background=[('active', '#dc2626')])
+    style.configure('Delete.TButton', background=RED, foreground="white", font=('Poppins', 10, 'bold'), borderwidth=0)
+    style.map('Delete.TButton', background=[('active', "#eb1616")])
+
+    style.configure('Edit.TButton', background=LELLOW, foreground="white", font=('Poppins', 10, 'bold'), borderwidth=0)
+    style.map('Edit.TButton', background=[('active', "#DCDF35")])
 
     style.configure('Calculate.TButton', background=GREEN, foreground="white", font=('Poppins', 12, 'bold'), borderwidth=0)
     style.map('Calculate.TButton', background=[('active', '#15803d')])
@@ -132,6 +137,19 @@ def start_app_ui():
                 delete_food(food_name)
         refresh_table_display()
 
+    def edit_selected_item():
+        selected_items = food_menu.selection()
+        if not selected_items:
+            return  
+        
+        item = selected_items[0]
+        item_values = food_menu.item(item, 'values')
+        if item_values:
+            food_name = item_values[0]
+            all_food = get_all_food()
+            
+            if food_name in all_food:
+                open_edit_item(root, food_name, all_food[food_name], refresh_table_display)
 
     # Table Action Buttons
     action_btn_frame = ttk.Frame(left_frame)
@@ -141,6 +159,10 @@ def start_app_ui():
                           command=lambda: open_add_item(root, refresh_table_display)
                           )
     add_item.pack(side="left", padx=(0, 5), ipady=5, expand=True, fill="x")
+
+    edit_item_btn = ttk.Button(action_btn_frame, text="📝 Edit Selected", style="Edit.TButton",
+                               command=edit_selected_item)
+    edit_item_btn.pack(side="left", padx=2, ipady=5, expand=True, fill="x")
 
     del_item = ttk.Button(action_btn_frame, text="🗑️ Delete Selected", style="Delete.TButton")
     del_item.pack(side="right", padx=(5, 0), ipady=5, expand=True, fill="x")
