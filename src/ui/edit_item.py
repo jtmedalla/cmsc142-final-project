@@ -71,7 +71,13 @@ def open_edit_item(parent_root, old_name, current_details, on_success_callback):
             return
 
         update_food_item(old_name, name, serving_size, value_serving, tolerance)
-        on_success_callback()
+
+        if old_name == name:
+            toast_text = f"✏️ Updated details for '{name}'"
+        else:
+            toast_text = f"✏️ Changed '{old_name}' ➔ '{name}'"
+
+        on_success_callback(toast_text)
         edit_win.destroy()
 
     save_btn = ttk.Button(form_frame, text="Save Changes", style="Calculate.TButton", command=save_changes)
