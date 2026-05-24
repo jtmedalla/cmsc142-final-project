@@ -164,7 +164,8 @@ def start_app_ui():
                                command=edit_selected_item)
     edit_item_btn.pack(side="left", padx=2, ipady=5, expand=True, fill="x")
 
-    del_item = ttk.Button(action_btn_frame, text="🗑️ Delete Selected", style="Delete.TButton")
+    del_item = ttk.Button(action_btn_frame, text="🗑️ Delete Selected", style="Delete.TButton",
+                          command=delete_selected_item)
     del_item.pack(side="right", padx=(5, 0), ipady=5, expand=True, fill="x")
 
 
