@@ -166,12 +166,15 @@ def start_app_ui():
         selected_items = food_menu.selection()
 
         if selected_items:
+            deleted_names = []
             for item in selected_items:
                 item_values = food_menu.item(item, 'values')
                 if item_values:
                     food_name = item_values[0]
                     delete_food(food_name)
-            refresh_table_display()
+                    deleted_names.append(food_name)
+            msg = f"Deleted {len(deleted_names)} item(s)" if len(deleted_names) > 1 else f"Removed '{deleted_names[0]}'"
+            refresh_table_display(toast_msg=msg, is_error=True)
             return
         
         if not food_menu.checklist_mode:
@@ -193,8 +196,10 @@ def start_app_ui():
                     checked_count += 1
             
             food_menu.checklist_mode = False
-            del_item.config(text="🗑️ Delete Selected")
-            refresh_table_display()
+            del_item.config(text="Delete Selected")
+
+            msg = f"Deleted {checked_count} item(s)" if checked_count > 0 else None
+            refresh_table_display(toast_msg=msg, is_error=True)
 
     def toggle_treeview_checkbox(event):
         if getattr(food_menu, 'checklist_mode', False):
