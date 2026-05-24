@@ -126,16 +126,68 @@ def start_app_ui():
                 f"{details['value_serving']:g}", 
                 details["tolerance"]
             ))
+        
+        food_menu.checklist_mode = False
+        del_item.config(text="🗑️ Delete Selected")
 
     def delete_selected_item():
-        """Drops highlighted row from the O(1) database structure and refreshes."""
+        """2 states will happened here if the user tap "Delete Button
+                -> 1. If no 'highlighted items' checkbox will appear 
+                    [user can delete multiple food items at the same time]
+                -> 2. If merong na 'highlight' na food, after pressing the
+                    delete button, it will be automatically deleted.
+        """
         selected_items = food_menu.selection()
-        for item in selected_items:
-            item_values = food_menu.item(item, 'values')
-            if item_values:
-                food_name = item_values[0]
-                delete_food(food_name)
-        refresh_table_display()
+
+        if selected_items:
+            for item in selected_items:
+                item_values = food_menu.item(item, 'values')
+                if item_values:
+                    food_name = item_values[0]
+                    delete_food(food_name)
+            refresh_table_display()
+            return
+        
+        if not food_menu.checklist_mode:
+            food_menu.checklist_mode = True
+            del_item.config(text="Confirm Delete Checked") 
+            
+            for item in food_menu.get_children():
+                current_vals = list(food_menu.item(item, 'values'))
+                if current_vals and not current_vals[0].startswith(("☐ ", "☑ ")):
+                    current_vals[0] = "☐ " + current_vals[0]
+                    food_menu.item(item, values=current_vals)
+        else:
+            checked_count = 0
+            for item in food_menu.get_children():
+                current_vals = list(food_menu.item(item, 'values'))
+                if current_vals and current_vals[0].startswith("☑ "):
+                    food_name = current_vals[0].replace("☑ ", "", 1)
+                    delete_food(food_name)
+                    checked_count += 1
+            
+            food_menu.checklist_mode = False
+            del_item.config(text="🗑️ Delete Selected")
+            refresh_table_display()
+
+    def toggle_treeview_checkbox(event):
+        if getattr(food_menu, 'checklist_mode', False):
+            item = food_menu.identify_row(event.y)
+            if item:
+                current_vals = list(food_menu.item(item, 'values'))
+                if current_vals:
+                    # Flip the checkbox state
+                    if current_vals[0].startswith("☐ "):
+                        current_vals[0] = current_vals[0].replace("☐ ", "☑ ", 1)
+                    elif current_vals[0].startswith("☑ "):
+                        current_vals[0] = current_vals[0].replace("☑ ", "☐ ", 1)
+                    
+                    food_menu.item(item, values=current_vals)
+                
+                food_menu.selection_remove(item)
+
+    # Attach the click-release trigger to the treeview
+    food_menu.bind("<ButtonRelease-1>", toggle_treeview_checkbox)
 
     def edit_selected_item():
         selected_items = food_menu.selection()
