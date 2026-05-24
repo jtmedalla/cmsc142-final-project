@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ui.add_item import open_add_item
-from core.db import get_all_food, delete_food
+from core.db import get_all_food, delete_food, get_max_weight, set_max_weight
 from ui.edit_item import open_edit_item
 
 # initializations
@@ -32,6 +32,7 @@ def start_app_ui():
     GREEN = "#16a34a"  
     RED = "#dc2626"     
     LELLOW = "#BABD37"
+    SLATE = "#000511"  
 
     style.configure('TFrame', background=BG_COLOR)
 
@@ -85,8 +86,52 @@ def start_app_ui():
     weight_label = ttk.Label(input_sub_frame, text="Max Weight Consumable (g):", style="Header.TLabel")
     weight_label.pack(side="left", padx=(0, 10))
 
-    weight_input = ttk.Entry(input_sub_frame, width=15)
-    weight_input.pack(side="left", ipady=2)
+    weight_container = ttk.Frame(input_sub_frame)
+    weight_container.pack(side="left", fill="x", expand=True)
+
+    def render_weight_input(force_edit=False):
+        for widget in weight_container.winfo_children():
+            widget.destroy()
+
+        current_weight = get_max_weight()
+
+        if current_weight == 0.0 or force_edit:
+            weight_entry = ttk.Entry(weight_container, width=15)
+            if current_weight > 0:
+                weight_entry.insert(0, f"{current_weight:g}")
+            weight_entry.pack(side="left", ipady=2)
+
+            def save_weight():
+                raw_val = weight_entry.get().strip()
+                try:
+                    val = float(raw_val)
+                    if val <= 0:
+                        show_toast(root, "⚠️ Weight must be greater than 0.", bg_color="#dc2626")
+                        return
+                    
+                    is_update = current_weight > 0
+                    set_max_weight(val) 
+                    
+                    msg = f"✅ Max weight updated to {val}g" if is_update else f"✅ Max weight set to {val}g"
+                    show_toast(root, msg, bg_color="GREEN")
+                    
+                    render_weight_input() 
+                except ValueError:
+                    show_toast(root, "⚠️ Valid number required.", bg_color="#dc2626")
+
+            # Determine button text
+            btn_text = "Update" if force_edit and current_weight > 0 else "Set"
+            set_btn = ttk.Button(weight_container, text=btn_text, style="Add.TButton", command=save_weight)
+            set_btn.pack(side="left", padx=(10, 0))
+
+        else:
+            weight_display = ttk.Label(weight_container, text=f"{current_weight:g} g", font=('Poppins', 12, 'bold'), foreground=SLATE)
+            weight_display.pack(side="left")
+
+            edit_btn = ttk.Button(weight_container, text="✏️ Edit", style="Edit.TButton", command=lambda: render_weight_input(force_edit=True))
+            edit_btn.pack(side="left", padx=(10, 0))
+
+    render_weight_input()
 
     # Treeview Table
     table_frame = ttk.Frame(left_frame)
