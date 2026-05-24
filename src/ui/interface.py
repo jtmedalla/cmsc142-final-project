@@ -89,7 +89,7 @@ def start_app_ui():
     ttk.Label(right_frame, text="Optimal Eating Allocation Strategy", style="Header.TLabel").pack(anchor="w", pady=(0, 8))
     image_display = tk.Canvas(right_frame, width=350, height=350, bg="white", highlightthickness=1, highlightbackground="#cbd5e1", relief="flat")
     image_display.pack(pady=(0, 15))
-    image_display.create_text(175, 175, text="Your optimization pie chart\nwill render here.", fill="#94a3b8", font=("Segoe UI", 10, "italic"), justify="center")
+    image_display.create_text(175, 175, text="Your optimization pie chart\nwill render here.", fill="#94a3b8", font=("Poppins", 10, "italic"), justify="center")
 
     calculate = ttk.Button(right_frame, text="🚀 CALCULATE OPTIMAL STRATEGY", style="Calculate.TButton")
     calculate.pack(fill="x", ipady=10)

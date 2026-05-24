@@ -4,7 +4,7 @@ def add_food_item(name, serving_size, value_serving, tolerance):
     food_items_db[name] = {
         "serving_size": float(serving_size),
         "value_serving": float(value_serving),
-        "tolerance": int(tolerance)
+        "tolerance": float(tolerance)
     }
 
 def delete_food(name):
