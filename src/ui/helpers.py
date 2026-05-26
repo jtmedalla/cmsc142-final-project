@@ -1,8 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
-from core.db import get_all_food, delete_food, get_max_weight, set_max_weight
+
 from ui.edit_item import open_edit_item
 
+from core.db import get_all_food, delete_food, get_max_weight, set_max_weight
+from core.knapsack import run_knapsack
 
 def show_toast(root, message, bg_color="#0f172a"):
     toast = tk.Toplevel(root)
@@ -179,3 +181,39 @@ def edit_selected_item(root, food_menu, refresh):
         all_food = get_all_food()
         if food_name in all_food:
             open_edit_item(root, food_name, all_food[food_name], refresh)
+
+def on_calculate(root, summary_var, show_toast):
+    max_w = get_max_weight()
+    all_food = get_all_food()
+
+    if max_w <= 0:
+        show_toast(root, "⚠️ Please set your max consumable weight first.", bg_color="#dc2626")
+        return
+    if not all_food:
+        show_toast(root, "⚠️ Please add at least one food item.", bg_color="#dc2626")
+        return
+
+    result = run_knapsack(max_w, all_food)
+
+    if not result["allocations"]:
+        show_toast(root, "⚠️ No valid food items to optimise.", bg_color="#dc2626")
+        return
+
+    total_v = result["total_value"]
+    total_w = result["total_weight"]
+    n_items = len(result["allocations"])
+
+    # build chosen items
+    chosen_lines = []
+    for alloc in result["allocations"]:
+        line = f"{alloc['name']} → {alloc['servings_taken']} serving(s), {alloc['weight_taken']} g, value {alloc['value_gained']} /n"
+        chosen_lines.append(line)
+
+    # breakdwon
+    summary_text = (
+        f"🍽 {n_items} item(s) | {total_w:g} g eaten | Total value: {total_v:g}\n"
+        + "\n".join(chosen_lines)
+    )
+
+    summary_var.set(summary_text)
+    show_toast(root, "✅ Optimal strategy calculated!", bg_color="#16a34a")
