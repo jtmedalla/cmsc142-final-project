@@ -2,8 +2,15 @@ import tkinter as tk
 from tkinter import ttk
 
 from ui.add_item import open_add_item
-from core.db import get_all_food, delete_food, get_max_weight, set_max_weight
-from ui.edit_item import open_edit_item
+from ui.helpers import (
+    show_toast,
+    render_weight_input,
+    refresh_table_display,
+    delete_selected_item,
+    toggle_treeview_checkbox,
+    edit_selected_item
+)
+
 
 # initializations
 
@@ -89,49 +96,7 @@ def start_app_ui():
     weight_container = ttk.Frame(input_sub_frame)
     weight_container.pack(side="left", fill="x", expand=True)
 
-    def render_weight_input(force_edit=False):
-        for widget in weight_container.winfo_children():
-            widget.destroy()
-
-        current_weight = get_max_weight()
-
-        if current_weight == 0.0 or force_edit:
-            weight_entry = ttk.Entry(weight_container, width=15)
-            if current_weight > 0:
-                weight_entry.insert(0, f"{current_weight:g}")
-            weight_entry.pack(side="left", ipady=2)
-
-            def save_weight():
-                raw_val = weight_entry.get().strip()
-                try:
-                    val = float(raw_val)
-                    if val <= 0:
-                        show_toast(root, "⚠️ Weight must be greater than 0.", bg_color="#dc2626")
-                        return
-                    
-                    is_update = current_weight > 0
-                    set_max_weight(val) 
-                    
-                    msg = f"✅ Max weight updated to {val}g" if is_update else f"✅ Max weight set to {val}g"
-                    show_toast(root, msg, bg_color="GREEN")
-                    
-                    render_weight_input() 
-                except ValueError:
-                    show_toast(root, "⚠️ Valid number required.", bg_color="#dc2626")
-
-            # Determine button text
-            btn_text = "Update" if force_edit and current_weight > 0 else "Set"
-            set_btn = ttk.Button(weight_container, text=btn_text, style="Add.TButton", command=save_weight)
-            set_btn.pack(side="left", padx=(10, 0))
-
-        else:
-            weight_display = ttk.Label(weight_container, text=f"{current_weight:g} g", font=('Poppins', 12, 'bold'), foreground=SLATE)
-            weight_display.pack(side="left")
-
-            edit_btn = ttk.Button(weight_container, text="✏️ Edit", style="Edit.TButton", command=lambda: render_weight_input(force_edit=True))
-            edit_btn.pack(side="left", padx=(10, 0))
-
-    render_weight_input()
+    render_weight_input(root, weight_container, show_toast)
 
     # Treeview Table
     table_frame = ttk.Frame(left_frame)
@@ -157,154 +122,33 @@ def start_app_ui():
     food_menu.pack(side="left", fill="both", expand=True)
     food_scroll.pack(side="right", fill="y")
 
-
-    def refresh_table_display(toast_msg=None, is_error=False):
-        """Clears the visual table and populates rows from the dictionary database."""
-        for row in food_menu.get_children():
-            food_menu.delete(row)
-        
-        # Pull items out of dictionary fast
-        for name, details in get_all_food().items():
-            food_menu.insert("", "end", values=(
-                name, 
-                f"{details['serving_size']:g}", 
-                f"{details['value_serving']:g}", 
-                details["tolerance"]
-            ))
-        
-        food_menu.checklist_mode = False
-        del_item.config(text="🗑️ Delete Selected")
-
-        if toast_msg:
-            color = RED if is_error else GREEN
-            show_toast(root, toast_msg, bg_color=color)
-
-    def show_toast(root, message, bg_color="#0f172a"):
-        toast = tk.Toplevel(root)
-        toast.wm_overrideredirect(True)  
-        toast.configure(bg=bg_color)
-
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        
-        toast_width = 320
-        toast_height = 42
-        
-        x = (screen_width - toast_width) // 2
-        y = (screen_height - toast_height) // 2
-        
-        toast.geometry(f"{toast_width}x{toast_height}+{x}+{y}")
-        toast.attributes("-topmost", True)
-        
-        lbl = tk.Label(toast, text=message, fg="white", bg=bg_color, font=('Poppins', 10, 'bold'))
-        lbl.pack(expand=True, fill="both", padx=10, pady=5)
-        
-        toast.after(2500, toast.destroy)
-
-    def delete_selected_item():
-        """2 states will happened here if the user tap "Delete Button
-                -> 1. If no 'highlighted items' checkbox will appear 
-                    [user can delete multiple food items at the same time]
-                -> 2. If merong na 'highlight' na food, after pressing the
-                    delete button, it will be automatically deleted.
-        """
-        selected_items = food_menu.selection()
-
-        if selected_items:
-            deleted_names = []
-            for item in selected_items:
-                item_values = food_menu.item(item, 'values')
-                if item_values:
-                    food_name = item_values[0]
-                    delete_food(food_name)
-                    deleted_names.append(food_name)
-            msg = f"Deleted {len(deleted_names)} item(s)" if len(deleted_names) > 1 else f"Removed '{deleted_names[0]}'"
-            refresh_table_display(toast_msg=msg, is_error=True)
-            return
-        
-        if not food_menu.checklist_mode:
-            food_menu.checklist_mode = True
-            del_item.config(text="Confirm Delete Checked") 
-            
-            for item in food_menu.get_children():
-                current_vals = list(food_menu.item(item, 'values'))
-                if current_vals and not current_vals[0].startswith(("☐ ", "☑ ")):
-                    current_vals[0] = "☐ " + current_vals[0]
-                    food_menu.item(item, values=current_vals)
-        else:
-            checked_count = 0
-            for item in food_menu.get_children():
-                current_vals = list(food_menu.item(item, 'values'))
-                if current_vals and current_vals[0].startswith("☑ "):
-                    food_name = current_vals[0].replace("☑ ", "", 1)
-                    delete_food(food_name)
-                    checked_count += 1
-            
-            food_menu.checklist_mode = False
-            del_item.config(text="Delete Selected")
-
-            msg = f"Deleted {checked_count} item(s)" if checked_count > 0 else None
-            refresh_table_display(toast_msg=msg, is_error=True)
-
-    def toggle_treeview_checkbox(event):
-        if getattr(food_menu, 'checklist_mode', False):
-            item = food_menu.identify_row(event.y)
-            if item:
-                current_vals = list(food_menu.item(item, 'values'))
-                if current_vals:
-                    # Flip the checkbox state
-                    if current_vals[0].startswith("☐ "):
-                        current_vals[0] = current_vals[0].replace("☐ ", "☑ ", 1)
-                    elif current_vals[0].startswith("☑ "):
-                        current_vals[0] = current_vals[0].replace("☑ ", "☐ ", 1)
-                    
-                    food_menu.item(item, values=current_vals)
-                
-                food_menu.selection_remove(item)
-
     # Attach the click-release trigger to the treeview
-    food_menu.bind("<ButtonRelease-1>", toggle_treeview_checkbox)
+    food_menu.bind("<ButtonRelease-1>", lambda e: toggle_treeview_checkbox(e, food_menu))
 
-    def edit_selected_item():
-        selected_items = food_menu.selection()
-        if not selected_items:
-            return  
-        
-        item = selected_items[0]
-        item_values = food_menu.item(item, 'values')
-        if item_values:
-            food_name = item_values[0]
-            all_food = get_all_food()
-            
-            if food_name in all_food:
-                open_edit_item(root, food_name, all_food[food_name], refresh_table_display)
-
-    # Table Action Buttons
+     # Buttons
     action_btn_frame = ttk.Frame(left_frame)
     action_btn_frame.pack(fill="x", pady=(10, 0))
 
     add_item = ttk.Button(action_btn_frame, text="➕ Add Food Item", style="Add.TButton",
-                          command=lambda: open_add_item(root, refresh_table_display)
-                          )
+                          command=lambda: open_add_item(root, lambda msg=None, err=False: refresh_table_display(root, food_menu, del_item, show_toast, msg, err)))
     add_item.pack(side="left", padx=(0, 5), ipady=5, expand=True, fill="x")
 
     edit_item_btn = ttk.Button(action_btn_frame, text="📝 Edit Selected", style="Edit.TButton",
-                               command=edit_selected_item)
+                               command=lambda: edit_selected_item(root, food_menu, lambda msg=None, err=False: refresh_table_display(root, food_menu, del_item, show_toast, msg, err)))
     edit_item_btn.pack(side="left", padx=2, ipady=5, expand=True, fill="x")
 
     del_item = ttk.Button(action_btn_frame, text="🗑️ Delete Selected", style="Delete.TButton",
-                          command=delete_selected_item)
+                          command=lambda: delete_selected_item(root, food_menu, del_item, show_toast, refresh_table_display))
     del_item.pack(side="right", padx=(5, 0), ipady=5, expand=True, fill="x")
 
-
     ttk.Label(right_frame, text="Optimal Eating Allocation Strategy", style="Header.TLabel").pack(anchor="w", pady=(0, 8))
-
     image_display = tk.Canvas(right_frame, width=350, height=350, bg="white", highlightthickness=1, highlightbackground="#cbd5e1", relief="flat")
     image_display.pack(pady=(0, 15))
-
     image_display.create_text(175, 175, text="Your optimization pie chart\nwill render here.", fill="#94a3b8", font=("Poppins", 10, "italic"), justify="center")
 
     calculate = ttk.Button(right_frame, text="🚀 CALCULATE OPTIMAL STRATEGY", style="Calculate.TButton")
     calculate.pack(fill="x", ipady=10)
+
+    root.mainloop()
         
     root.mainloop()
