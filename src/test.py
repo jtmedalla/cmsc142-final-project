@@ -1,6 +1,10 @@
 # tester of knapsack
 from core.knapsack import run_knapsack
 
+# tester of graph
+from core.graph import get_graph
+import core.db as db
+
 def test_knapsack():
     # sample food items
     food_items = {
@@ -40,6 +44,21 @@ def test_knapsack():
         print(f"- {alloc['name']}: {alloc['servings_taken']} servings "
               f"({alloc['weight_taken']} g, value {alloc['value_gained']}, "
               f"partial={alloc['is_partial']})")
+        
+def test_graph():
+    db.set_max_weight(1000)
+    db.add_food_item("Adobo", 300, 200, 2)
+    db.add_food_item("Sinigang", 100, 100, 1)
+    db.add_food_item("Rice", 50, 50, 1)
+
+    max_w = db.get_max_weight()
+    max_food = db.get_all_food()
+
+    result = run_knapsack(max_w, max_food)
+
+    print(result["allocations"])
+
+    get_graph(result["allocations"])
 
 if __name__ == "__main__":
-    test_knapsack()
+    test_graph()
