@@ -18,6 +18,7 @@ from ui.helpers import (
 def start_app_ui():
     root = tk.Tk()
     root.title("Buffet Value Maximizer")
+    root.resizable(False, False)
 
     window_width = 950
     window_height = 550
@@ -233,19 +234,12 @@ def start_app_ui():
         justify="center",
     )
 
-    # right pannel summary
-    summary_var = tk.StringVar(value="")
-    summary_lbl = ttk.Label(right_frame, textvariable=summary_var, style="TLabel")
-    summary_lbl.pack(anchor="center", pady=(0, 8))
-
     calculate = ttk.Button(
         right_frame,
         text="🚀 CALCULATE OPTIMAL STRATEGY",
         style="Calculate.TButton",
-        command=lambda: on_calculate(root, summary_var, show_toast),
+        command=lambda: on_calculate(root, image_display, show_toast),
     )
     calculate.pack(fill="x", ipady=10)
-
-    root.mainloop()
 
     root.mainloop()
